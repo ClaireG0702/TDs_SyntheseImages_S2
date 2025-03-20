@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
 #include "glbasimac/glbi_engine.hpp"
+#include "glbasimac/glbi_set_of_points.hpp"
 #include <iostream>
 
 using namespace glbasimac;
@@ -10,21 +11,12 @@ using namespace glbasimac;
 static const double FRAMERATE_IN_SECONDS = 1. / 30.;
 static float aspectRatio = 1.0f;
 
-float red = 0.f;
-float green = 0.f;
-float blue = 0.f;
-
 /* Espace virtuel */
 static const float GL_VIEW_SIZE = 1.;
 
 /* OpenGL Engine */
 GLBI_Engine myEngine;
-
-enum ViewMode {
-    MOUSE_EFFECT,
-    MANUAL_COLOR
-};
-ViewMode currentMode = MOUSE_EFFECT;
+GLBI_Set_Of_Points thePoints;
 
 /* Error handling function */
 void onError(int error, const char *description)
@@ -43,56 +35,26 @@ void onWindowResized(GLFWwindow * /*window*/, int width, int height) {
     }
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    // if (key == GLFW_KEY_A && action == GLFW_PRESS) { // Ici on utiliser GLFW_KEY_A car glfw se base sur un clavier qwerty (donc Q pour un azerty)
-    //     glfwSetWindowShouldClose(window, GLFW_TRUE);
-    // }
+void initScene() {
+    std::vector<float> pointsCoordinates = { 
+        0.f, 0.f,
+        0.5f, 0.f, 
+        0.f, 0.5f, 
+        -0.5f, -0.5f 
+    };
+    std::vector<float> pointsColors = { 
+        1.f, 1.f, 1.f, 
+        1.f, 0.f, 0.f, 
+        0.f, 1.f, 0.f,
+        1.f, 0.f, 1.f
+    };
 
-    const char* keyName = glfwGetKeyName(key, scancode);
-    std::cout << "Key: " << keyName << std::endl;
-    std::cout << "Mode: " << currentMode << std::endl;
-    
-    if(keyName[0] == 'q' && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-    if (keyName[0] == 'm' && action == GLFW_PRESS) {
-        currentMode = (currentMode == MOUSE_EFFECT) ? MANUAL_COLOR : MOUSE_EFFECT;
-    }
-
-    if(currentMode == MANUAL_COLOR) {
-        if(keyName[0] == 'r' && action == GLFW_PRESS) {
-            (mods && GLFW_MOD_SHIFT) ? red += .1f : red -= .1f;
-        } else if(keyName[0] == 'g' && action == GLFW_PRESS) {
-            (mods && GLFW_MOD_SHIFT) ? green += .1f : green -= .1f;
-        } else if(keyName[0] == 'b' && action == GLFW_PRESS) {
-            (mods && GLFW_MOD_SHIFT) ? blue += .1f : blue -= .1f;
-        }
-    }
+    thePoints.initSet(pointsCoordinates, pointsColors);
 }
 
-void mouse_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-        // std::cout << "Mouse position: " << xpos << ", " << ypos << std::endl;
-
-        red = static_cast<float>(static_cast<int>(xpos) % 256) / 255.0f;
-        green = static_cast<float>(static_cast<int>(ypos) % 256) / 255.0f;
-        blue = 0.f;
-    }
-}
-
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    // std::cout << "Mouse position: " << xpos << ", " << ypos << std::endl;
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-
-    red = static_cast<float>(static_cast<int>(xpos) % width) / static_cast<float>(width);
-    green = 0.f;
-    blue = static_cast<float>(static_cast<int>(ypos) % height) / static_cast<float>(height);
+void renderScene() {
+    glPointSize(4.0);
+    thePoints.drawSet();
 }
 
 int main()
@@ -107,18 +69,14 @@ int main()
     glfwSetErrorCallback(onError);
 
     // Create a windowed mode window and its OpenGL context
-    GLFWwindow *window = glfwCreateWindow(800, 800, "TD 01 Ex 04", nullptr, nullptr);
-    // GLFWwindow *window = glfwCreateWindow(800, 800, "TD 01 Ex 04", glfwGetPrimaryMonitor(), nullptr);
+    GLFWwindow *window = glfwCreateWindow(800, 800, "TD 02 Ex 01", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
         return -1;
     }
     glfwSetWindowSizeCallback(window, onWindowResized);
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetMouseButtonCallback(window, mouse_callback);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-
+    
     // Make the window's context current
     glfwMakeContextCurrent(window);
     
@@ -132,6 +90,9 @@ int main()
     myEngine.initGL();
 
     onWindowResized(window, 800, 800);
+
+    // Initaialize the set of points
+    initScene();
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -140,10 +101,11 @@ int main()
         double startTime = glfwGetTime();
 
         /* Render here */
-        glClearColor(red, green, blue, 0.f);
+        glClearColor(0.2f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render here
+        renderScene();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
