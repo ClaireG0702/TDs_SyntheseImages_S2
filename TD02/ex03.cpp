@@ -12,7 +12,7 @@ static const double FRAMERATE_IN_SECONDS = 1. / 30.;
 static float aspectRatio = 1.0f;
 
 /* Espace virtuel */
-static const float GL_VIEW_SIZE = 1.;
+static const float GL_VIEW_SIZE = 2.0;
 
 /* OpenGL Engine */
 GLBI_Engine myEngine;
@@ -38,23 +38,66 @@ void onWindowResized(GLFWwindow * /*window*/, int width, int height) {
 void initScene() {
     std::vector<float> pointsCoordinates = { 
         0.f, 0.f,
-        0.5f, 0.f, 
-        0.f, 0.5f, 
-        -0.5f, -0.5f 
+        1.f, 0.f, 
+        0.f, 0.f, 
+        0.f, 1.f 
     };
     std::vector<float> pointsColors = { 
-        1.f, 1.f, 1.f, 
+        1.f, 0.f, 0.f, 
         1.f, 0.f, 0.f, 
         0.f, 1.f, 0.f,
-        1.f, 0.f, 1.f
+        0.f, 1.f, 0.f
     };
 
     thePoints.initSet(pointsCoordinates, pointsColors);
+    thePoints.changeNature(GL_LINES);
 }
 
 void renderScene() {
     glPointSize(4.0);
     thePoints.drawSet();
+}
+
+void mouse_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        // std::cout << "Mouse position: " << xpos << ", " << ypos << std::endl;
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        // Call onWindowResized to update aspectRatio
+        onWindowResized(window, width, height);
+
+        float x = static_cast<float>(xpos) / (width / 2.f) - 1.0f;
+        float y = 1.0f - static_cast<float>(ypos) / (height / 2.f);
+
+        if (aspectRatio > 1.0f) {
+            x *= aspectRatio;
+        } else {
+            y /= aspectRatio;
+        }
+
+        float pointCoord[2] = { x, y };
+        float pointColor[3] = { 1.0f, 1.0f, 1.0f }; // White color
+
+        thePoints.addAPoint(pointCoord, pointColor);
+    }
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    const char* keyName = glfwGetKeyName(key, scancode);
+
+    if (action == GLFW_PRESS) {
+        if (keyName[0] == 'l') {
+            thePoints.changeNature(GL_LINE_STRIP);
+        }
+        else if (keyName[0] == 'p') {
+            thePoints.changeNature(GL_POINTS);
+        }
+    }
 }
 
 int main()
@@ -69,13 +112,15 @@ int main()
     glfwSetErrorCallback(onError);
 
     // Create a windowed mode window and its OpenGL context
-    GLFWwindow *window = glfwCreateWindow(800, 800, "TD 02 Ex 01", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(800, 800, "TD 02 Ex 03", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
         return -1;
     }
     glfwSetWindowSizeCallback(window, onWindowResized);
+    glfwSetMouseButtonCallback(window, mouse_callback);
+    glfwSetKeyCallback(window, key_callback);
     
     // Make the window's context current
     glfwMakeContextCurrent(window);

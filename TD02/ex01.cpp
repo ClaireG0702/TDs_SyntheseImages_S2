@@ -12,10 +12,11 @@ static const double FRAMERATE_IN_SECONDS = 1. / 30.;
 static float aspectRatio = 1.0f;
 
 /* Espace virtuel */
-static const float GL_VIEW_SIZE = 1.;
+static const float GL_VIEW_SIZE = 2.;
 
 /* OpenGL Engine */
 GLBI_Engine myEngine;
+GLBI_Set_Of_Points thePoints;
 
 /* Error handling function */
 void onError(int error, const char *description)
@@ -82,7 +83,6 @@ int main()
         1.f, 0.f, 1.f
     };
 
-    GLBI_Set_Of_Points thePoints;
     thePoints.initSet(pointsCoordinates, pointsColors);
     
     /* Loop until the user closes the window */
