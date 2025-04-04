@@ -74,14 +74,17 @@ void renderScene() {
     switch(objectNumber) {
     case 0:
         myEngine.setFlatColor(1.0f, 0.0f, 0.0f);
+        carre.changeNature(GL_TRIANGLE_FAN);
         carre.drawShape();
         break;
     case 1:
         myEngine.setFlatColor(1.0f, 1.0f, 0.0f);
+        triangle.changeNature(GL_TRIANGLE_FAN);
         triangle.drawShape();
         break;
     case 2:
         myEngine.setFlatColor(0.0f, 1.0f, 0.0f);
+        cercle.changeNature(GL_TRIANGLE_FAN);
         cercle.drawShape();
         break;
     default:
